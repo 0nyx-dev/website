@@ -1,5 +1,360 @@
-<html>
-  <h1>
-    hey
-  </h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Fun Zone 🎉</title>
+<meta name="description" content="A tiny playground packed with whimsy and color." />
+<style>
+  :root{
+    --bg1:#1e3c72;
+    --bg2:#2a5298;
+    --text:#0f1222;
+    --card:#ffffffee;
+    --accent:#ff6ec7;
+    --muted:#00000044;
+  }
+  [data-theme="dark"]{
+    --bg1:#0e0e15;
+    --bg2:#1c1c2b;
+    --text:#f2f5ff;
+    --card:#1d2030ee;
+    --accent:#7cf6ff;
+    --muted:#ffffff33;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, var(--bg2), transparent 70%),
+      radial-gradient(1200px 600px at 110% 10%, var(--bg1), transparent 70%),
+      linear-gradient(120deg, var(--bg1), var(--bg2));
+    background-attachment: fixed;
+    overflow-x:hidden;
+  }
+  .wrap{
+    max-width:1100px;
+    margin-inline:auto;
+    padding:clamp(16px,4vw,32px);
+  }
+  header{
+    display:flex; gap:12px; align-items:center; justify-content:space-between;
+    padding:12px 16px; border-radius:16px; backdrop-filter: blur(6px);
+    background:var(--card);
+    box-shadow: 0 10px 30px var(--muted);
+  }
+  h1{font-size:clamp(28px,4.5vw,44px); margin:0}
+  .tag{font-weight:700; letter-spacing:.5px; color:var(--accent)}
+  .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+  .btn{
+    border:0; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:700;
+    background: var(--accent); color:#000; transition: transform .08s ease, filter .2s ease;
+    box-shadow: 0 6px 18px var(--muted);
+  }
+  .btn:active{ transform: translateY(1px) scale(.98) }
+  .btn.ghost{
+    background:transparent; color:var(--text); border:2px solid var(--accent)
+  }
+  input[type="color"]{
+    inline-size:48px; block-size:36px; border:0; border-radius:8px; background:transparent;
+    box-shadow: 0 6px 18px var(--muted); cursor:pointer;
+  }
+  main{margin-top:18px; display:grid; gap:18px}
+  .card{
+    background:var(--card); border-radius:18px; padding:18px; position:relative;
+    box-shadow: 0 10px 30px var(--muted);
+  }
+  .hero{
+    display:grid; gap:12px;
+    grid-template-columns: 1.2fr .8fr;
+  }
+  @media (max-width:850px){ .hero{ grid-template-columns:1fr } }
+  .hero h2{font-size:clamp(22px,3.5vw,32px); margin:0}
+  .hero p{margin-top:6px; opacity:.9}
+  .pill{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px;
+    background: color-mix(in oklab, var(--accent) 18%, transparent);
+    border: 2px dashed var(--accent); font-weight:700;
+  }
+  .sparkle{
+    animation: spin 6s linear infinite;
+    display:inline-block
+  }
+  @keyframes spin{to{ transform: rotate(360deg) }}
+  /* Floating emoji */
+  .sky{ pointer-events:none; position:fixed; inset:0; overflow:hidden; z-index:0 }
+  .floater{
+    position:absolute; font-size:clamp(18px,4vw,34px);
+    animation: floatY var(--t,12s) linear infinite;
+    opacity:.9; filter: drop-shadow(0 6px 10px var(--muted));
+  }
+  @keyframes floatY{ from{ transform: translateY(110vh)} to{ transform: translateY(-20vh)} }
+
+  /* Game area */
+  .game{
+    display:grid; gap:12px;
+  }
+  .arena{
+    position:relative; height:300px; border-radius:16px; overflow:hidden;
+    background: repeating-conic-gradient(from 45deg, color-mix(in oklab, var(--accent) 14%, transparent) 0 12deg, transparent 12deg 24deg);
+    outline:2px dashed var(--accent);
+  }
+  .blob{
+    position:absolute; inline-size:72px; aspect-ratio:1; border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, #fff, var(--accent));
+    box-shadow: 0 8px 20px var(--muted);
+    display:grid; place-items:center; font-size:26px; user-select:none; cursor:pointer;
+    transform: translate(-50%,-50%);
+  }
+  .score{
+    display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+  }
+  .score .num{font-weight:900; font-size:24px}
+  .kbd{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    background:#0000000d; border:1px solid #0000001a; padding:.2em .45em; border-radius:.4em;
+  }
+  footer{
+    color: #ffffffcc; text-align:center; margin:26px 0 14px; font-size:14px;
+    text-shadow:0 1px 2px #00000055;
+  }
+</style>
+</head>
+<body data-theme="light">
+  <div class="sky" aria-hidden="true" id="sky"></div>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Fun <span class="tag">Zone</span> <span class="sparkle">✨</span></h1>
+        <small>Play with the buttons, beat the game, and paint the vibe.</small>
+      </div>
+      <div class="controls" role="toolbar" aria-label="Site controls">
+        <button class="btn" id="surprise">Confetti!</button>
+        <button class="btn ghost" id="theme">Toggle Theme</button>
+        <label class="kbd" title="Pick accent color">
+          🎨
+          <input type="color" id="accent" aria-label="Pick accent color" value="#ff6ec7" />
+        </label>
+      </div>
+    </header>
+
+    <main>
+      <section class="card hero">
+        <div>
+          <h2>Welcome to your tiny playground</h2>
+          <p>Click anywhere to release floating emojis. Hit <span class="kbd">Confetti!</span> when you’re feeling fancy. Use the color picker to set the site’s accent. Your high score saves automatically.</p>
+          <p class="pill">Tip: Press <span class="kbd">?</span> for help • Try the <span class="kbd">Konami code</span> 😉</p>
+        </div>
+        <div>
+          <img alt="Cute abstract blob friends" width="900" height="600" style="width:100%; border-radius:16px; box-shadow:0 10px 30px var(--muted)" src="data:image/svg+xml;utf8,
+          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 600'>
+            <defs>
+              <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+                <stop stop-color='%23fff' offset='0'/>
+                <stop stop-color='%23ff6ec7' offset='1'/>
+              </linearGradient>
+            </defs>
+            <rect width='100%' height='100%' fill='%232a5298'/>
+            <g opacity='.85'>
+              <ellipse cx='250' cy='320' rx='120' ry='110' fill='url(%23g)'/>
+              <circle cx='620' cy='300' r='130' fill='url(%23g)'/>
+            </g>
+            <g font-size='90' text-anchor='middle'>
+              <text x='250' y='340'>😊</text>
+              <text x='620' y='330'>😎</text>
+            </g>
+          </svg>"/>
+        </div>
+      </section>
+
+      <section class="card game" aria-labelledby="game-title">
+        <h2 id="game-title">Mini‑Game: Catch the Blob 🫧</h2>
+        <div class="score">
+          <div>Score: <span class="num" id="score">0</span></div>
+          <div>Time: <span class="num" id="time">30</span>s</div>
+          <div>Best: <span class="num" id="best">0</span></div>
+          <button class="btn" id="start">Start</button>
+          <button class="btn ghost" id="reset">Reset</button>
+        </div>
+        <div class="arena" id="arena" aria-live="polite">
+          <div class="blob" id="blob" style="left:50%; top:50%">💥</div>
+        </div>
+        <small>How to play: click the blob as it pops around. It gets quicker over time!</small>
+      </section>
+
+      <section class="card">
+        <h2>About this page</h2>
+        <p>All effects here are vanilla HTML, CSS, and a tiny bit of JavaScript—no external libraries. Share it, remix it, and have fun.</p>
+      </section>
+    </main>
+
+    <footer>Made with ✨ and a dash of chaos.</footer>
+  </div>
+
+<script>
+/* ---------- Utilities ---------- */
+const $ = (q, root=document) => root.querySelector(q);
+const $$ = (q, root=document) => [...root.querySelectorAll(q)];
+const rand = (min, max) => Math.random()*(max-min)+min;
+const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+
+/* ---------- Theme + Accent ---------- */
+const themeBtn = $("#theme");
+const accentInput = $("#accent");
+const root = document.documentElement;
+const savedTheme = localStorage.getItem("fun-theme");
+const savedAccent = localStorage.getItem("fun-accent");
+if(savedTheme) document.body.setAttribute("data-theme", savedTheme);
+if(savedAccent){ root.style.setProperty("--accent", savedAccent); accentInput.value = savedAccent; }
+
+themeBtn.addEventListener("click", () => {
+  const next = document.body.getAttribute("data-theme")==="dark" ? "light" : "dark";
+  document.body.setAttribute("data-theme", next);
+  localStorage.setItem("fun-theme", next);
+});
+accentInput.addEventListener("input", e => {
+  const val = e.target.value;
+  root.style.setProperty("--accent", val);
+  localStorage.setItem("fun-accent", val);
+});
+
+/* ---------- Confetti ---------- */
+const surpriseBtn = $("#surprise");
+function confettiBurst(count = 60){
+  const sky = $("#sky");
+  for(let i=0;i<count;i++){
+    const s = document.createElement("div");
+    s.className = "floater";
+    s.textContent = ["🎉","✨","💫","⭐","🎈","🎊","🌈","🪩"][Math.floor(rand(0,8))];
+    s.style.left = rand(0, 100) + "vw";
+    s.style.top = rand(80, 100) + "vh";
+    s.style.setProperty("--t", rand(6, 14) + "s");
+    sky.appendChild(s);
+    // cleanup
+    setTimeout(()=>s.remove(), 14000);
+  }
+}
+surpriseBtn.addEventListener("click", ()=> confettiBurst(80));
+
+/* ---------- Click to spawn emoji ---------- */
+document.addEventListener("click", (e)=>{
+  // ignore toolbar & buttons to avoid over-spam
+  if(e.target.closest("button, input, .blob")) return;
+  const sky = $("#sky");
+  const s = document.createElement("div");
+  s.className = "floater";
+  s.textContent = ["🥳","🤩","😺","🦄","🍭","🍩","🚀","🎮"][Math.floor(rand(0,8))];
+  s.style.left = e.clientX + "px";
+  s.style.top = e.clientY + "px";
+  s.style.setProperty("--t", rand(5, 10) + "s");
+  sky.appendChild(s);
+  setTimeout(()=>s.remove(), 10000);
+});
+
+/* ---------- Mini‑game ---------- */
+const arena = $("#arena");
+const blob = $("#blob");
+const scoreEl = $("#score");
+const timeEl = $("#time");
+const bestEl = $("#best");
+const startBtn = $("#start");
+const resetBtn = $("#reset");
+let score=0, time=30, running=false, tickTimer=null, moveTimer=null, baseDelay=800;
+
+bestEl.textContent = localStorage.getItem("fun-best") ?? "0";
+
+function moveBlob(){
+  const rect = arena.getBoundingClientRect();
+  const pad = 40;
+  const x = rand(pad, rect.width-pad);
+  const y = rand(pad, rect.height-pad);
+  blob.style.left = x + "px";
+  blob.style.top = y + "px";
+}
+
+function scheduleMove(){
+  const delay = clamp(baseDelay - score*10, 220, 800);
+  moveTimer = setTimeout(()=>{
+    moveBlob();
+    if(running) scheduleMove();
+  }, delay);
+}
+
+function startGame(){
+  if(running) return;
+  running = true;
+  score = 0; time = 30; baseDelay = 800;
+  scoreEl.textContent = score;
+  timeEl.textContent = time;
+  moveBlob();
+  scheduleMove();
+  tickTimer = setInterval(()=>{
+    time--;
+    timeEl.textContent = time;
+    if(time<=0) endGame();
+  }, 1000);
+}
+
+function endGame(){
+  running = false;
+  clearInterval(tickTimer);
+  clearTimeout(moveTimer);
+  const best = Math.max(Number(localStorage.getItem("fun-best")||0), score);
+  localStorage.setItem("fun-best", best);
+  bestEl.textContent = best;
+  confettiBurst(clamp(score, 20, 120));
+  alert(`Time! Your score: ${score}\nBest: ${best}`);
+}
+
+blob.addEventListener("click", (e)=>{
+  if(!running) return;
+  e.stopPropagation();
+  score++;
+  scoreEl.textContent = score;
+  blob.textContent = ["💥","💫","⭐","✨","⚡","🔥"][score % 6];
+  // tiny pop
+  blob.animate([{transform:"translate(-50%,-50%) scale(1)"},{transform:"translate(-50%,-50%) scale(1.12)"}],{duration:90,direction:"alternate"});
+  moveBlob();
+});
+
+startBtn.addEventListener("click", startGame);
+resetBtn.addEventListener("click", ()=>{
+  running=false; clearInterval(tickTimer); clearTimeout(moveTimer);
+  score=0; time=30; scoreEl.textContent=0; timeEl.textContent=30; blob.textContent="💥";
+});
+
+/* ---------- Keyboard help & Konami ---------- */
+const help = `Shortcuts:
+? – Show this help
+C – Confetti
+T – Toggle Theme
+S – Start game
+R – Reset game
+Click anywhere to spawn emojis.`;
+document.addEventListener("keydown", (e)=>{
+  if(e.key === "?") alert(help);
+  if(e.key.toLowerCase() === "c") confettiBurst(60);
+  if(e.key.toLowerCase() === "t") themeBtn.click();
+  if(e.key.toLowerCase() === "s") startBtn.click();
+  if(e.key.toLowerCase() === "r") resetBtn.click();
+});
+
+// Simple Konami code: up up down down left right left right b a
+const konami = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
+let buffer=[];
+document.addEventListener("keydown",(e)=>{
+  buffer.push(e.key);
+  buffer = buffer.slice(-konami.length);
+  if(konami.every((k,i)=> buffer[i]?.toLowerCase()===k.toLowerCase())){
+    confettiBurst(120);
+    document.body.animate([{filter:"saturate(100%)"},{filter:"saturate(220%)"}],{duration:600,direction:"alternate"});
+    alert("🕹️ Konami power unlocked! Bonus confetti!");
+    buffer=[];
+  }
+});
+</script>
+</body>
 </html>
